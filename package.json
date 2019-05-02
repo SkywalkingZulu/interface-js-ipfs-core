@@ -46,7 +46,7 @@
     "es6-promisify": "^6.0.1",
     "hat": "0.0.3",
     "into-stream": "^4.0.0",
-    "ipfs": "^0.35.0",
+    "ipfs": "~0.35.0",
     "ipfs-block": "~0.8.0",
     "ipfs-unixfs": "~0.1.16",
     "ipld-dag-cbor": "~0.13.1",
