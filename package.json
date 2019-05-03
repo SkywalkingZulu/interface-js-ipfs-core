@@ -53,7 +53,7 @@
     "ipld-dag-pb": "~0.15.0",
     "is-ipfs": "~0.5.1",
     "is-plain-object": "^2.0.4",
-    "ipfs-utils": "github:hugomrdias/js-ipfs-utils#master",
+    "js-ipfs-utils": "github:hugomrdias/js-ipfs-utils#master",
     "libp2p-crypto": "~0.16.0",
     "multiaddr": "^6.0.0",
     "multibase": "~0.6.0",
