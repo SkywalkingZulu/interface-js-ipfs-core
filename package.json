@@ -40,6 +40,7 @@
     "bl": "^2.1.2",
     "bs58": "^4.0.1",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "cids": "~0.5.5",
     "concat-stream": "^2.0.0",
     "dirty-chai": "^2.0.1",
