@@ -50,7 +50,7 @@ module.exports = (createCommon, options) => {
 
           ipfs.object.links(cid, (err, links) => {
             expect(err).to.not.exist()
-            expect(node.links).to.deep.equal(links)
+            expect(node.Links).to.deep.equal(links)
             done()
           })
         })
@@ -67,46 +67,24 @@ module.exports = (createCommon, options) => {
       const node = await ipfs.object.get(cid)
       const links = await ipfs.object.links(cid)
 
-      expect(node.links).to.eql(links)
+      expect(node.Links).to.eql(links)
     })
 
     it('should get links by multihash', (done) => {
-      let node1a
+      const node1a = DAGNode.create(Buffer.from('Some data 1'))
       let node1b
       let node1bCid
-      let node2
+      const node2 = DAGNode.create(Buffer.from('Some data 2'))
 
       series([
         (cb) => {
-          DAGNode.create(Buffer.from('Some data 1'), (err, node) => {
-            expect(err).to.not.exist()
-            node1a = node
-
-            cb()
-          })
-        },
-        (cb) => {
-          DAGNode.create(Buffer.from('Some data 2'), (err, node) => {
-            expect(err).to.not.exist()
-            node2 = node
-            cb()
-          })
-        },
-        (cb) => {
-          asDAGLink(node2, 'some-link', (err, link) => {
-            expect(err).to.not.exist()
-
-            DAGNode.addLink(node1a, link, (err, node) => {
-              expect(err).to.not.exist()
-              node1b = node
-
-              dagPB.util.cid(node, (err, cid) => {
-                expect(err).to.not.exist()
-                node1bCid = cid
-                cb()
-              })
-            })
-          })
+          asDAGLink(node2, 'some-link')
+            .then(link => DAGNode.addLink(node1a, link))
+            .then(node => { node1b = node })
+            .then(() => dagPB.util.cid(dagPB.util.serialize(node1b)))
+            .then(cid => { node1bCid = cid })
+            .then(cb)
+            .catch(cb)
         },
         (cb) => {
           ipfs.object.put(node1b, (cb))
@@ -114,7 +92,11 @@ module.exports = (createCommon, options) => {
         (cb) => {
           ipfs.object.links(node1bCid, (err, links) => {
             expect(err).to.not.exist()
-            expect(node1b.links[0].toJSON()).to.eql(links[0].toJSON())
+            expect({
+              cid: node1b.Links[0].Hash.toString(),
+              name: node1b.Links[0].Name,
+              size: node1b.Links[0].Tsize
+            }).to.eql(links[0].toJSON())
             cb()
           })
         }
@@ -135,7 +117,7 @@ module.exports = (createCommon, options) => {
 
           ipfs.object.links(cid.buffer, { enc: 'base58' }, (err, links) => {
             expect(err).to.not.exist()
-            expect(node.links).to.deep.equal(links)
+            expect(node.Links).to.deep.equal(links)
             done()
           })
         })
@@ -156,45 +138,8 @@ module.exports = (createCommon, options) => {
 
           ipfs.object.links(cid.toBaseEncodedString(), { enc: 'base58' }, (err, links) => {
             expect(err).to.not.exist()
-            expect(node.links).to.deep.equal(links)
+            expect(node.Links).to.deep.equal(links)
             done()
-          })
-        })
-      })
-    })
-
-    it('should get links from CBOR object', (done) => {
-      const hashes = []
-      ipfs.add(Buffer.from('test data'), (err, res1) => {
-        expect(err).to.not.exist()
-        hashes.push(res1[0].hash)
-        ipfs.add(Buffer.from('more test data'), (err, res2) => {
-          hashes.push(res2[0].hash)
-          expect(err).to.not.exist()
-          const obj = {
-            some: 'data',
-            mylink: { '/': hashes[0] },
-            myobj: {
-              anotherLink: { '/': hashes[1] }
-            }
-          }
-          ipfs.dag.put(obj, (err, cid) => {
-            expect(err).to.not.exist()
-            ipfs.object.links(cid, (err, links) => {
-              expect(err).to.not.exist()
-              expect(links.length).to.eql(2)
-
-              // TODO: js-ipfs succeeds but go returns empty strings for link name
-              // const names = [links[0].name, links[1].name]
-              // expect(names).includes('mylink')
-              // expect(names).includes('myobj/anotherLink')
-
-              const cids = [links[0].cid.toString(), links[1].cid.toString()]
-              expect(cids).includes(hashes[0])
-              expect(cids).includes(hashes[1])
-
-              done()
-            })
           })
         })
       })
